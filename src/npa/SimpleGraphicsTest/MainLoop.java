@@ -19,7 +19,6 @@ public class MainLoop implements Runnable {
     @Override
     public void run() {
         while(running) {
-            Log.v(TAG, "frame");
             contentView.updateView();
 
             try {
