@@ -1,9 +1,7 @@
 package npa.SimpleGraphicsTest;
 
 import android.graphics.*;
-import android.util.Log;
 
-import static npa.SimpleGraphicsTest.Constants.TAG;
 
 public class Baddy {
 
@@ -36,7 +34,6 @@ public class Baddy {
     }
 
     public void draw(Canvas canvas) {
-        Log.v(TAG, "drawing baddy");
 
         Paint paint=new Paint();
         paint.setColor(Color.MAGENTA);
@@ -68,11 +65,15 @@ public class Baddy {
 
     public boolean outsideFrame(Rect frame) {
         if (x<frame.left || x>frame.right || y<frame.top || y>frame.bottom) {
-            Log.d(TAG,"left the frame");
             return true;
         }
-        else {
-            return false;
-        }
+        return false;
     }
+
+    public boolean hitTheTarget(float targetX,float targetY) {
+        if ((Math.abs(x-targetX)<radius) && (Math.abs(y-targetY)<radius)) {
+            return true;
+        }
+        return false;
+     }
 }

@@ -23,6 +23,8 @@ public class MyView extends SurfaceView implements SurfaceHolder.Callback {
     private float middleX,middleY,width,height;
     private double angleIncrement=0;
     private static double SPEED=0.1;
+    private RectF outerRect;
+    private RectF innerRect;
 
     public MyView(Context context) {
         super(context);
@@ -36,19 +38,29 @@ public class MyView extends SurfaceView implements SurfaceHolder.Callback {
 
         Paint paint=new Paint();
         paint.setAntiAlias(true);
-        paint.setColor(Color.GRAY);
+        paint.setColor(Color.DKGRAY);
         paint.setStrokeWidth(3);
         paint.setStyle(Paint.Style.STROKE);
+        paint.setPathEffect(new DashPathEffect(new float[] {2,5}, 0));
+
         Path path=new Path();
-
-        RectF a=new RectF(middleX-(width/2),middleY-(height/2),middleX+(width/2),middleY+(height/2));
-        path.addArc(a, 0, 360);
-
-        canvas.drawPath(path,paint);
+        path.addArc(outerRect, 0, 360);
+        canvas.drawPath(path, paint);
 
         for (double angle=0;angle<2*Math.PI;angle+=Math.PI/3) {
-            canvas.drawLine(middleX,middleY,(float)(Math.cos(angle+startAngle)*(width/2))+middleX,(float)(Math.sin(angle+startAngle)*(height/2))+middleY,paint);
+            canvas.drawLine(middleX, middleY, (float) (Math.cos(angle + startAngle) * (width / 2)) + middleX, (float) (Math.sin(angle + startAngle) * (height / 2)) + middleY, paint);
         }
+
+        paint.setColor(Color.RED);
+        paint.setStyle(Paint.Style.FILL);
+        path=new Path();
+        path.moveTo(middleX,middleY);
+        path.lineTo((float)(Math.cos(startAngle)*(width/4))+middleX,(float)(Math.sin(startAngle)*(height/4))+middleY);
+        path.addArc(innerRect,(float)Math.toDegrees(startAngle)-10,20);
+        path.lineTo(middleX,middleY);
+        path.close();
+
+        canvas.drawPath(path,paint);
 
         for (Baddy baddy:baddies) {
             baddy.draw(canvas);
@@ -57,22 +69,24 @@ public class MyView extends SurfaceView implements SurfaceHolder.Callback {
 
 
 
-    private void calculateCentre(SurfaceHolder holder) {
+    private void initialise(SurfaceHolder holder) {
         surfaceFrame=holder.getSurfaceFrame();
         middleX=surfaceFrame.width()/2;
         middleY=surfaceFrame.height()/2;
         width=(float)(surfaceFrame.width()*0.9);
         height=(float)(width*0.5);
+        outerRect=new RectF(middleX-(width/2),middleY-(height/2),middleX+(width/2),middleY+(height/2));
+        innerRect=new RectF(middleX-(width/4),middleY-(height/4),middleX+(width/4),middleY+(height/4));
     }
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
-        calculateCentre(holder);
+        initialise(holder);
     }
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-        calculateCentre(holder);
+        initialise(holder);
     }
 
     @Override
@@ -81,7 +95,6 @@ public class MyView extends SurfaceView implements SurfaceHolder.Callback {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        Log.d(TAG, String.valueOf(event.getAction()));
         if (event.getAction()==MotionEvent.ACTION_DOWN) {
             if (event.getX()<middleX) {
                 angleIncrement=SPEED;
@@ -89,8 +102,6 @@ public class MyView extends SurfaceView implements SurfaceHolder.Callback {
             else {
                 angleIncrement=-SPEED;
             }
-
-            releaseTheBaddy(event.getX(),event.getY());
         }
         else if (event.getAction()==MotionEvent.ACTION_MOVE) {
         }
@@ -102,17 +113,18 @@ public class MyView extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     public void updateView() {
-        startAngle+=angleIncrement;
+        update();
+
+        deployNewBaddies();
 
         for (Baddy baddy:baddies) {
             baddy.update();
-            if (baddy.outsideFrame(surfaceFrame)) {
+            if (baddy.outsideFrame(surfaceFrame) || baddy.hitTheTarget(middleX,middleY)) {
                 baddies.remove(baddy);
             }
         }
 
         Canvas canvas=getHolder().lockCanvas();
-        Log.v(TAG, "canvas locked");
 
         if (canvas!=null) {
             doDraw(canvas);
@@ -120,8 +132,22 @@ public class MyView extends SurfaceView implements SurfaceHolder.Callback {
         }
     }
 
-   void releaseTheBaddy(float startX,float startY) {
-       Log.d(TAG,"Release the baddy at "+startX+" "+startY);
-       baddies.add(new Baddy(startX, startY, middleX, middleY, 5));
+    private void update() {
+        startAngle+=angleIncrement;
+    }
+
+    private void deployNewBaddies() {
+        if (Math.random()*100<5) {
+
+            double angle=Math.random()*2*Math.PI;
+            float baddieX=(float)(Math.cos(angle)*(width/2)+middleX);
+            float baddieY=(float)(Math.sin(angle)*(height/2)+middleY);
+            releaseTheBaddy(baddieX,baddieY);
+        }
+    }
+
+    void releaseTheBaddy(float startX,float startY) {
+       Baddy b=new Baddy(startX, startY, middleX, middleY, 5);
+       baddies.add(b);
    }
 }
