@@ -113,17 +113,6 @@ public class MyView extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     public void updateView() {
-        update();
-
-        deployNewBaddies();
-
-        for (Baddy baddy:baddies) {
-            baddy.update();
-            if (baddy.outsideFrame(surfaceFrame) || baddy.hitTheTarget(middleX,middleY)) {
-                baddies.remove(baddy);
-            }
-        }
-
         Canvas canvas=getHolder().lockCanvas();
 
         if (canvas!=null) {
@@ -132,8 +121,20 @@ public class MyView extends SurfaceView implements SurfaceHolder.Callback {
         }
     }
 
-    private void update() {
+    public void update() {
         startAngle+=angleIncrement;
+
+        deployNewBaddies();
+
+        for (Baddy baddy:baddies) {
+            baddy.update();
+            if (baddy.outsideFrame(surfaceFrame) || baddy.hitTheTarget(middleX,middleY)) {
+                baddies.remove(baddy);
+            }
+            else if (baddy.zappedByTheBeam(middleX,middleY,startAngle,20,width/4,height/4)) {
+                baddy.zapped();
+            }
+        }
     }
 
     private void deployNewBaddies() {

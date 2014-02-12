@@ -10,6 +10,7 @@ public class Baddy {
     private double direction;
     private float velocity;
     private float radius=10;
+    private int color=Color.MAGENTA;
 
     public Baddy(float x,float y,double directionInDegrees,float velocity) {
         this.x=x;
@@ -36,7 +37,7 @@ public class Baddy {
     public void draw(Canvas canvas) {
 
         Paint paint=new Paint();
-        paint.setColor(Color.MAGENTA);
+        paint.setColor(color);
         paint.setStrokeWidth(3);
         paint.setStyle(Paint.Style.FILL_AND_STROKE);
         Path path=new Path();
@@ -76,4 +77,23 @@ public class Baddy {
         }
         return false;
      }
+
+    public boolean zappedByTheBeam(float centreX, float centreY, float startAngle, int sweepAngle, float width, float height) {
+        Float a=(float)(Math.toDegrees(Math.atan2(centreY - y, centreX - x)));
+        if (a>startAngle && a<startAngle+sweepAngle) {
+            // TODO - this logic is incorrect when we implement the next bit
+            return true;
+        }
+        // TODO - calculate hypotenuse of point at that angle on the perimeter and compare with our point
+        return false;
+    }
+
+    public void zapped() {
+        setColor(Color.YELLOW);
+    }
+
+    public void setColor(int color) {
+        this.color = color;
+    }
+
 }
